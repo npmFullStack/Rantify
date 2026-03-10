@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { PenLine, BookOpen, ArrowDown, Heart, MessageCircle, Users } from "lucide-react";
+import { PenLine, BookOpen, Heart, MessageCircle, Users } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -31,9 +31,9 @@ const Home = () => {
     <div className="bg-bgColor text-white">
       <Header scrollToSection={scrollToSection} />
 
-      <main>
+      <main className="pt-16"> {/* Added padding-top to account for fixed header */}
         {/* HERO SECTION - min-h-screen */}
-        <section className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
+        <section id="home" className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
           
@@ -115,19 +115,6 @@ const Home = () => {
                 <PenLine size={20} className="group-hover:rotate-12 transition" />
                 Write Letter
               </motion.button>
-            </motion.div>
-
-            {/* Scroll indicator */}
-            <motion.div 
-              className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <ArrowDown 
-                size={24} 
-                className="text-gray-400 cursor-pointer"
-                onClick={() => scrollToSection("about")}
-              />
             </motion.div>
           </motion.div>
         </section>
