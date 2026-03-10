@@ -96,7 +96,7 @@ const ReadLetter = () => {
             />
 
             <p className="mt-6 text-white text-lg">
-              Hover then click the letter to read it
+              Click the letter to read it
             </p>
           </>
         )}
