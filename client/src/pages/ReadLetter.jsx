@@ -155,9 +155,9 @@ const ReadLetter = () => {
 
         {/* TEXT */}
         <motion.p
-          className="text-white text-xl font-logo mt-2"
+          className="text-white text-xl mt-2"
           whileHover={{
-            color: "#ff0090",
+            color: "#primary",
           }}
         >
           Write a letter
