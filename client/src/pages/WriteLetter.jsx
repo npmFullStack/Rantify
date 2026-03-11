@@ -2,15 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
-import pen from "@/assets/images/pen.png";
 
 const WriteLetter = () => {
   const [letter, setLetter] = useState("");
   const [author, setAuthor] = useState("");
-  const [message, setMessage] = useState("Start writing your heartfelt letter below...");
+  const [message, setMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [penPos, setPenPos] = useState({ x: 0, y: 0 });
-  
+
   const textareaRef = useRef(null);
 
   // Auto-focus textarea when modal opens
@@ -18,56 +16,23 @@ const WriteLetter = () => {
     if (isModalOpen && textareaRef.current) {
       setTimeout(() => {
         textareaRef.current.focus();
-      }, 100);
+      }, 150);
     }
   }, [isModalOpen]);
-
-  // Track pen position relative to cursor
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea || !isModalOpen) return;
-
-    const updatePen = () => {
-      const selectionStart = textarea.selectionStart;
-      const textBeforeCursor = textarea.value.substr(0, selectionStart);
-      const lines = textBeforeCursor.split("\n");
-      const lineHeight = 28; // line height in pixels
-      const charWidth = 8; // approx char width in pixels
-
-      // Calculate position
-      const x = charWidth * lines[lines.length - 1].length;
-      const y = (lines.length - 1) * lineHeight;
-
-      setPenPos({ x, y });
-    };
-
-    updatePen();
-
-    textarea.addEventListener("keyup", updatePen);
-    textarea.addEventListener("click", updatePen);
-    textarea.addEventListener("input", updatePen);
-
-    return () => {
-      textarea.removeEventListener("keyup", updatePen);
-      textarea.removeEventListener("click", updatePen);
-      textarea.removeEventListener("input", updatePen);
-    };
-  }, [letter, isModalOpen]);
 
   const handleSubmit = () => {
     if (!letter.trim()) {
       setMessage("Please write something before sending...");
       return;
     }
-    
+
     console.log({ letter, author });
     setMessage("Your letter has been sent! ✨");
-    
-    // Reset form
+
     setTimeout(() => {
       setLetter("");
       setAuthor("");
-      setMessage("Start writing your heartfelt letter below...");
+      setMessage("");
       setIsModalOpen(false);
     }, 2000);
   };
@@ -76,35 +41,112 @@ const WriteLetter = () => {
     <div className="bg-bgColor min-h-screen text-white">
       <Header />
 
-      <main className="container mx-auto px-6 pt-24 pb-12">
+      <main className="min-h-screen flex items-center justify-center px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-3xl mx-auto text-center"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-xl text-center flex flex-col items-center gap-6"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Write a{' '}
-            <span className="text-primary">Letter</span>
-          </h1>
-          <p className="text-gray-400 text-lg mb-8">
-            Pour your heart out. Your words matter.
-          </p>
+          {/* Decorative flourish */}
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex items-center gap-3"
+          >
+            <span style={{ color: "#c9a96e", fontSize: "22px" }}>✦</span>
+            <span
+              style={{
+                display: "block",
+                width: "60px",
+                height: "1px",
+                background: "linear-gradient(to right, transparent, #c9a96e)",
+              }}
+            />
+            <span
+              style={{
+                color: "#c9a96e",
+                fontSize: "13px",
+                letterSpacing: "0.25em",
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              EST. WITH LOVE
+            </span>
+            <span
+              style={{
+                display: "block",
+                width: "60px",
+                height: "1px",
+                background: "linear-gradient(to left, transparent, #c9a96e)",
+              }}
+            />
+            <span style={{ color: "#c9a96e", fontSize: "22px" }}>✦</span>
+          </motion.div>
 
+          {/* Heading */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <h1
+              className="font-bold leading-tight"
+              style={{
+                fontSize: "clamp(2.2rem, 7vw, 3.6rem)",
+                fontFamily:
+                  "'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Write a{" "}
+              <span className="text-primary" style={{ fontStyle: "italic" }}>
+                Letter
+              </span>
+            </h1>
+            <p
+              className="mt-3 text-gray-400"
+              style={{
+                fontSize: "clamp(0.95rem, 2.5vw, 1.15rem)",
+                fontFamily: "Georgia, 'Times New Roman', serif",
+                letterSpacing: "0.02em",
+                lineHeight: 1.7,
+              }}
+            >
+              Pour your heart out.{" "}
+              <span style={{ color: "#a89070" }}>Your words matter.</span>
+            </p>
+          </motion.div>
+
+          {/* CTA Button */}
           <motion.button
             onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-full font-medium text-lg transition transform hover:scale-105"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.4 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            className="bg-primary hover:bg-primary/90 text-white font-medium transition-all"
+            style={{
+              padding: "14px 40px",
+              borderRadius: "999px",
+              fontSize: "clamp(0.95rem, 2.5vw, 1.1rem)",
+              fontFamily: "'Palatino Linotype', Georgia, serif",
+              letterSpacing: "0.04em",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+            }}
           >
             Open Letter Paper
           </motion.button>
 
-          {/* Preview of recent message */}
-          {message && message !== "Start writing your heartfelt letter below..." && (
+          {/* Status message */}
+          {message && (
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-6 text-primary"
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-primary"
+              style={{ fontFamily: "Georgia, serif", fontSize: "0.95rem" }}
             >
               {message}
             </motion.p>
@@ -114,71 +156,126 @@ const WriteLetter = () => {
 
       {/* Letter Modal */}
       <LetterModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div className="relative min-h-[500px]">
-          {/* Pen following cursor - only visible on desktop */}
-          <motion.img
-            src={pen}
-            alt="pen"
-            className="hidden md:block absolute w-8 pointer-events-none transform -rotate-12"
+        <div className="relative" style={{ minHeight: "420px" }}>
+          {/* Header */}
+          <div
             style={{
-              left: `${penPos.x}px`,
-              top: `${penPos.y - 10}px`,
-              transition: 'left 0.05s ease, top 0.05s ease',
-              zIndex: 20
+              textAlign: "center",
+              marginBottom: "20px",
+              paddingBottom: "14px",
+              borderBottom: "1px solid rgba(100,60,10,0.25)",
             }}
-          />
-
-          {/* Letter Content */}
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6 text-center text-[#3e2e1f] border-b border-[#d4b48c] pb-2">
+          >
+            <h2
+              style={{
+                fontSize: "clamp(1.3rem, 4vw, 1.6rem)",
+                fontFamily:
+                  "'Palatino Linotype', 'Book Antiqua', Georgia, serif",
+                color: "#2c1a08",
+                fontStyle: "italic",
+                fontWeight: "600",
+                letterSpacing: "0.02em",
+              }}
+            >
               Dear Reader...
             </h2>
+          </div>
 
-            {/* Textarea for letter - Fixed z-index and pointer events */}
-            <textarea
-              ref={textareaRef}
-              value={letter}
-              onChange={(e) => setLetter(e.target.value)}
-              placeholder="Write your letter here..."
-              className="w-full h-64 bg-transparent border-none resize-none text-[#3e2e1f] text-lg leading-relaxed focus:outline-none font-serif placeholder-[#b89a7a] relative z-10"
+          {/* Textarea */}
+          <textarea
+            ref={textareaRef}
+            value={letter}
+            onChange={(e) => setLetter(e.target.value)}
+            placeholder="Write your letter here..."
+            style={{
+              width: "100%",
+              minHeight: "220px",
+              background: "transparent",
+              border: "none",
+              resize: "none",
+              color: "#2c1a08",
+              fontSize: "clamp(0.95rem, 2.5vw, 1.05rem)",
+              lineHeight: "1.85",
+              fontFamily: "'Palatino Linotype', 'Book Antiqua', Georgia, serif",
+              outline: "none",
+              WebkitTextFillColor: "#2c1a08",
+              caretColor: "#6b3a12",
+              position: "relative",
+              zIndex: 10,
+              boxSizing: "border-box",
+            }}
+            className="placeholder-[#b89a7a]"
+          />
+
+          {/* Author row */}
+          <div
+            style={{
+              marginTop: "20px",
+              paddingTop: "14px",
+              borderTop: "1px solid rgba(100,60,10,0.25)",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: "10px",
+            }}
+          >
+            <span
               style={{
-                background: 'transparent',
-                WebkitAppearance: 'none',
-                WebkitTextFillColor: '#3e2e1f',
-                opacity: 1,
-                position: 'relative',
-                zIndex: 10
+                color: "#2c1a08",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(0.85rem, 2vw, 1rem)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Sincerely yours,
+            </span>
+            <input
+              type="text"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="Your name (optional)"
+              style={{
+                background: "transparent",
+                border: "none",
+                borderBottom: "1px solid rgba(100,60,10,0.35)",
+                color: "#2c1a08",
+                fontSize: "clamp(0.85rem, 2vw, 1rem)",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                outline: "none",
+                width: "clamp(120px, 30%, 170px)",
+                WebkitTextFillColor: "#2c1a08",
+                paddingBottom: "2px",
+                zIndex: 10,
+                position: "relative",
               }}
             />
+          </div>
 
-            {/* Author section */}
-            <div className="mt-8 flex items-center justify-end gap-4 border-t border-[#d4b48c] pt-4">
-              <span className="text-[#3e2e1f] font-serif italic">
-                Sincerely yours,
-              </span>
-              <input
-                type="text"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Your name (optional)"
-                className="bg-transparent border-b border-[#d4b48c] text-[#3e2e1f] text-lg focus:outline-none w-40 font-serif placeholder-[#b89a7a] relative z-10"
-                style={{
-                  background: 'transparent',
-                  WebkitAppearance: 'none',
-                  WebkitTextFillColor: '#3e2e1f'
-                }}
-              />
-            </div>
-
-            {/* Send button */}
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleSubmit}
-                className="bg-[#8b6b4d] hover:bg-[#6b4f3a] text-white px-8 py-2 rounded-full transition font-serif"
-              >
-                Send Letter
-              </button>
-            </div>
+          {/* Send button */}
+          <div style={{ marginTop: "22px", textAlign: "center" }}>
+            <motion.button
+              onClick={handleSubmit}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              style={{
+                background: "linear-gradient(135deg, #8b6b4d, #6b4f3a)",
+                color: "#f5e6c8",
+                border: "none",
+                padding: "10px 36px",
+                borderRadius: "999px",
+                cursor: "pointer",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                fontSize: "clamp(0.9rem, 2vw, 1rem)",
+                letterSpacing: "0.05em",
+                boxShadow: "0 4px 18px rgba(60,30,10,0.3)",
+                position: "relative",
+                zIndex: 10,
+              }}
+            >
+              Send Letter
+            </motion.button>
           </div>
         </div>
       </LetterModal>
