@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PenLine, BookOpen, Heart, MessageCircle, Users } from "lucide-react";
 import Header from "@/components/Header";
@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [scrollY, setScrollY] = useState(0);
 
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -16,29 +18,53 @@ const Home = () => {
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.6 },
   };
 
   const staggerContainer = {
     animate: {
       transition: {
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
+
+  useEffect(() => {
+    // Check if we need to scroll to a section
+    if (location.state?.scrollTo) {
+      scrollToSection(location.state.scrollTo);
+      // Clear the state to prevent scrolling on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
+  // Add scroll event listener for active section tracking
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="bg-bgColor text-white">
       <Header scrollToSection={scrollToSection} />
 
-      <main className="pt-16"> {/* Added padding-top to account for fixed header */}
+      <main className="pt-16">
+        {" "}
+        {/* Added padding-top to account for fixed header */}
         {/* HERO SECTION - min-h-screen */}
-        <section id="home" className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden">
+        <section
+          id="home"
+          className="min-h-screen flex items-center justify-center px-6 relative overflow-hidden"
+        >
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-          
+
           {/* Animated circles */}
-          <motion.div 
+          <motion.div
             className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
             animate={{
               scale: [1, 1.2, 1],
@@ -49,8 +75,8 @@ const Home = () => {
               repeat: Infinity,
             }}
           />
-          
-          <motion.div 
+
+          <motion.div
             className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl"
             animate={{
               scale: [1, 1.3, 1],
@@ -62,20 +88,20 @@ const Home = () => {
             }}
           />
 
-          <motion.div 
+          <motion.div
             className="container mx-auto text-center relative z-10"
             initial="initial"
             animate="animate"
             variants={staggerContainer}
           >
-            <motion.h1 
+            <motion.h1
               className="text-5xl md:text-7xl font-bold mb-6"
               variants={fadeInUp}
             >
-              Welcome to{' '}
+              Welcome to{" "}
               <span className="text-primary relative inline-block">
                 Rantify
-                <motion.span 
+                <motion.span
                   className="absolute -bottom-2 left-0 w-full h-1 bg-primary/30 rounded-full"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
@@ -84,15 +110,16 @@ const Home = () => {
               </span>
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               className="text-lg md:text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed"
               variants={fadeInUp}
             >
-              A safe place to release your thoughts. Write a letter, read stories,
-              and let your emotions flow freely in a judgment-free space.
+              A safe place to release your thoughts. Write a letter, read
+              stories, and let your emotions flow freely in a judgment-free
+              space.
             </motion.p>
 
-            <motion.div 
+            <motion.div
               className="flex justify-center gap-4 md:gap-6 flex-wrap"
               variants={fadeInUp}
             >
@@ -102,7 +129,10 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <BookOpen size={20} className="group-hover:rotate-12 transition" />
+                <BookOpen
+                  size={20}
+                  className="group-hover:rotate-12 transition"
+                />
                 Read Letters
               </motion.button>
 
@@ -112,20 +142,22 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <PenLine size={20} className="group-hover:rotate-12 transition" />
+                <PenLine
+                  size={20}
+                  className="group-hover:rotate-12 transition"
+                />
                 Write Letter
               </motion.button>
             </motion.div>
           </motion.div>
         </section>
-
         {/* ABOUT SECTION - min-h-screen */}
         <section
           id="about"
           className="min-h-screen flex items-center justify-center px-6 py-20 border-t border-gray-800 relative"
         >
           <div className="container mx-auto">
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -134,7 +166,7 @@ const Home = () => {
             >
               {/* Left side - Text content */}
               <div>
-                <motion.h2 
+                <motion.h2
                   className="section-title text-primary"
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
@@ -144,17 +176,21 @@ const Home = () => {
                   About Rantify
                 </motion.h2>
 
-                <motion.p 
+                <motion.p
                   className="text-gray-300 text-lg leading-relaxed mb-8"
                   initial={{ opacity: 0, x: -30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.3 }}
                 >
-                  Rantify is more than just a platform — it's a community where people can freely express their thoughts and emotions through letters. Whether it's something you want to confess, share, or simply release from your mind, this is your space to be heard without judgment.
+                  Rantify is more than just a platform — it's a community where
+                  people can freely express their thoughts and emotions through
+                  letters. Whether it's something you want to confess, share, or
+                  simply release from your mind, this is your space to be heard
+                  without judgment.
                 </motion.p>
 
-                <motion.div 
+                <motion.div
                   className="grid grid-cols-2 gap-4"
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -164,7 +200,9 @@ const Home = () => {
                   <div className="bg-gray-900/50 p-4 rounded-lg">
                     <Heart className="text-primary mb-2" size={24} />
                     <h3 className="font-semibold mb-1">Safe Space</h3>
-                    <p className="text-sm text-gray-400">Anonymous and judgment-free</p>
+                    <p className="text-sm text-gray-400">
+                      Anonymous and judgment-free
+                    </p>
                   </div>
                   <div className="bg-gray-900/50 p-4 rounded-lg">
                     <MessageCircle className="text-secondary mb-2" size={24} />
@@ -185,7 +223,7 @@ const Home = () => {
               </div>
 
               {/* Right side - Stats/Image */}
-              <motion.div 
+              <motion.div
                 className="bg-gradient-to-br from-primary/10 to-secondary/10 p-8 rounded-2xl backdrop-blur-sm"
                 initial={{ opacity: 0, x: 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -200,7 +238,7 @@ const Home = () => {
                       <span className="text-primary font-bold">10,000+</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <motion.div 
+                      <motion.div
                         className="bg-primary h-2 rounded-full"
                         initial={{ width: 0 }}
                         whileInView={{ width: "85%" }}
@@ -215,7 +253,7 @@ const Home = () => {
                       <span className="text-secondary font-bold">5,000+</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <motion.div 
+                      <motion.div
                         className="bg-secondary h-2 rounded-full"
                         initial={{ width: 0 }}
                         whileInView={{ width: "70%" }}
@@ -230,7 +268,7 @@ const Home = () => {
                       <span className="text-primary font-bold">3,500+</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2">
-                      <motion.div 
+                      <motion.div
                         className="bg-primary h-2 rounded-full"
                         initial={{ width: 0 }}
                         whileInView={{ width: "60%" }}
@@ -244,14 +282,13 @@ const Home = () => {
             </motion.div>
           </div>
         </section>
-
         {/* CONTACT SECTION - min-h-screen */}
         <section
           id="contact"
           className="min-h-screen flex items-center justify-center px-6 py-20 border-t border-gray-800"
         >
           <div className="container mx-auto max-w-4xl">
-            <motion.div 
+            <motion.div
               className="text-center mb-12"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -263,7 +300,7 @@ const Home = () => {
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="bg-gray-900/50 rounded-2xl p-8 backdrop-blur-sm"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -273,7 +310,9 @@ const Home = () => {
               <form className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-gray-300 mb-2">Name</label>
+                    <label htmlFor="name" className="block text-gray-300 mb-2">
+                      Name
+                    </label>
                     <input
                       type="text"
                       id="name"
@@ -282,7 +321,9 @@ const Home = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-gray-300 mb-2">Email</label>
+                    <label htmlFor="email" className="block text-gray-300 mb-2">
+                      Email
+                    </label>
                     <input
                       type="email"
                       id="email"
@@ -291,9 +332,11 @@ const Home = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
-                  <label htmlFor="message" className="block text-gray-300 mb-2">Message</label>
+                  <label htmlFor="message" className="block text-gray-300 mb-2">
+                    Message
+                  </label>
                   <textarea
                     id="message"
                     rows={5}
