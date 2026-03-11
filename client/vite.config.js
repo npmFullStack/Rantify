@@ -16,5 +16,6 @@ export default defineConfig({
   preview: {
     port: 5173,
     host: true,
+    allowedHosts: ["rantify-client.onrender.com"], // Add this line
   },
 });
