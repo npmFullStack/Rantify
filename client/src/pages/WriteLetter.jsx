@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
+import { letterAPI } from "@/services/api";
 
 const WriteLetter = () => {
   const [letter, setLetter] = useState("");
   const [author, setAuthor] = useState("");
   const [message, setMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const textareaRef = useRef(null);
 
@@ -20,21 +22,40 @@ const WriteLetter = () => {
     }
   }, [isModalOpen]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!letter.trim()) {
       setMessage("Please write something before sending...");
       return;
     }
 
-    console.log({ letter, author });
-    setMessage("Your letter has been sent! ✨");
+    setIsLoading(true);
+    setMessage("");
 
-    setTimeout(() => {
-      setLetter("");
-      setAuthor("");
-      setMessage("");
-      setIsModalOpen(false);
-    }, 2000);
+    try {
+      const response = await letterAPI.createLetter({
+        content: letter,
+        author: author.trim() || "Anonymous",
+      });
+
+      if (response.data.success) {
+        setMessage("Your letter has been sent! ✨");
+
+        setTimeout(() => {
+          setLetter("");
+          setAuthor("");
+          setMessage("");
+          setIsModalOpen(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error sending letter:", error);
+      setMessage(
+        error.response?.data?.message ||
+          "Failed to send letter. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -145,7 +166,7 @@ const WriteLetter = () => {
             <motion.p
               initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-primary"
+              className={`text-${message.includes("✨") ? "primary" : "red-400"}`}
               style={{ fontFamily: "Georgia, serif", fontSize: "0.95rem" }}
             >
               {message}
@@ -187,6 +208,7 @@ const WriteLetter = () => {
             value={letter}
             onChange={(e) => setLetter(e.target.value)}
             placeholder="Write your letter here..."
+            disabled={isLoading}
             style={{
               width: "100%",
               minHeight: "220px",
@@ -236,6 +258,7 @@ const WriteLetter = () => {
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="Your name (optional)"
+              disabled={isLoading}
               style={{
                 background: "transparent",
                 border: "none",
@@ -257,24 +280,28 @@ const WriteLetter = () => {
           <div style={{ marginTop: "22px", textAlign: "center" }}>
             <motion.button
               onClick={handleSubmit}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
+              disabled={isLoading}
+              whileHover={{ scale: isLoading ? 1 : 1.04 }}
+              whileTap={{ scale: isLoading ? 1 : 0.96 }}
               style={{
-                background: "linear-gradient(135deg, #8b6b4d, #6b4f3a)",
+                background: isLoading
+                  ? "linear-gradient(135deg, #8b6b4d, #6b4f3a)"
+                  : "linear-gradient(135deg, #8b6b4d, #6b4f3a)",
                 color: "#f5e6c8",
                 border: "none",
                 padding: "10px 36px",
                 borderRadius: "999px",
-                cursor: "pointer",
+                cursor: isLoading ? "not-allowed" : "pointer",
                 fontFamily: "'Palatino Linotype', Georgia, serif",
                 fontSize: "clamp(0.9rem, 2vw, 1rem)",
                 letterSpacing: "0.05em",
                 boxShadow: "0 4px 18px rgba(60,30,10,0.3)",
                 position: "relative",
                 zIndex: 10,
+                opacity: isLoading ? 0.7 : 1,
               }}
             >
-              Send Letter
+              {isLoading ? "Sending..." : "Send Letter"}
             </motion.button>
           </div>
         </div>

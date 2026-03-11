@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { letterAPI } from "@/services/api";
 
 import jar from "@/assets/images/jar.png";
 import letter from "@/assets/images/letter.png";
@@ -12,12 +13,35 @@ const ReadLetter = () => {
   const [jarOpen, setJarOpen] = useState(false);
   const [letterDropped, setLetterDropped] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [currentLetter, setCurrentLetter] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const navigate = useNavigate();
+
+  const fetchRandomLetter = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await letterAPI.getRandomLetter();
+      if (response.data.success && response.data.data) {
+        setCurrentLetter(response.data.data);
+      } else {
+        setError("No letters found. Be the first to write one!");
+      }
+    } catch (err) {
+      console.error("Error fetching letter:", err);
+      setError("Failed to fetch a letter. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleJarClick = () => {
     if (jarOpen) return;
     setJarOpen(true);
+    fetchRandomLetter();
     setTimeout(() => {
       setLetterDropped(true);
     }, 1600);
@@ -28,8 +52,47 @@ const ReadLetter = () => {
       <Header />
 
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] py-16 px-4 sm:px-6">
+        {/* Loading State */}
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <p
+              className="text-primary text-lg"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              Fetching a letter for you...
+            </p>
+          </motion.div>
+        )}
+
+        {/* Error State */}
+        {error && !isLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center"
+          >
+            <p
+              className="text-red-400 text-lg"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              {error}
+            </p>
+            <motion.button
+              onClick={handleJarClick}
+              className="mt-4 px-6 py-2 bg-primary/20 rounded-lg text-primary"
+              whileHover={{ scale: 1.05 }}
+            >
+              Try Again
+            </motion.button>
+          </motion.div>
+        )}
+
         {/* JAR */}
-        {!letterDropped && (
+        {!letterDropped && !isLoading && !error && (
           <>
             <motion.img
               src={jar}
@@ -60,7 +123,7 @@ const ReadLetter = () => {
         )}
 
         {/* LETTER */}
-        {letterDropped && !showContent && (
+        {letterDropped && !showContent && !isLoading && currentLetter && (
           <>
             <motion.img
               src={letter}
@@ -88,67 +151,58 @@ const ReadLetter = () => {
 
       {/* LETTER MODAL */}
       <LetterModal isOpen={showContent} onClose={() => setShowContent(false)}>
-        <div>
-          {/* Greeting */}
-          <h2
-            style={{
-              textAlign: "center",
-              fontFamily: "'Palatino Linotype', Georgia, serif",
-              fontSize: "clamp(1.2rem, 4vw, 1.6rem)",
-              color: "#2c1a08",
-              fontStyle: "italic",
-              fontWeight: "600",
-              marginBottom: "20px",
-              paddingBottom: "14px",
-              borderBottom: "1px solid rgba(100,60,10,0.25)",
-            }}
-          >
-            Dear Stranger,
-          </h2>
+        {currentLetter && (
+          <div>
+            {/* Greeting */}
+            <h2
+              style={{
+                textAlign: "center",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                fontSize: "clamp(1.2rem, 4vw, 1.6rem)",
+                color: "#2c1a08",
+                fontStyle: "italic",
+                fontWeight: "600",
+                marginBottom: "20px",
+                paddingBottom: "14px",
+                borderBottom: "1px solid rgba(100,60,10,0.25)",
+              }}
+            >
+              Dear Stranger,
+            </h2>
 
-          {/* Letter body */}
-          <p
-            style={{
-              fontFamily: "'Palatino Linotype', Georgia, serif",
-              fontSize: "clamp(0.95rem, 2.5vw, 1.05rem)",
-              lineHeight: "1.9",
-              color: "#2c1a08",
-            }}
-          >
-            Sometimes life feels overwhelming and we carry emotions we cannot
-            easily share. If you are reading this, just remember you are not
-            alone. Someone out there understands your story.
-          </p>
+            {/* Letter body */}
+            <p
+              style={{
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                fontSize: "clamp(0.95rem, 2.5vw, 1.05rem)",
+                lineHeight: "1.9",
+                color: "#2c1a08",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {currentLetter.content}
+            </p>
 
-          <p
-            style={{
-              fontFamily: "'Palatino Linotype', Georgia, serif",
-              fontSize: "clamp(0.95rem, 2.5vw, 1.05rem)",
-              lineHeight: "1.9",
-              color: "#2c1a08",
-              marginTop: "16px",
-            }}
-          >
-            Keep going. The world is better with you in it.
-          </p>
-
-          {/* Sign-off */}
-          <div
-            style={{
-              marginTop: "32px",
-              paddingTop: "14px",
-              borderTop: "1px solid rgba(100,60,10,0.25)",
-              textAlign: "right",
-              fontFamily: "'Palatino Linotype', Georgia, serif",
-              fontStyle: "italic",
-              fontSize: "clamp(0.9rem, 2vw, 1rem)",
-              color: "#2c1a08",
-            }}
-          >
-            With love, <br />
-            <span style={{ fontWeight: "600" }}>A fellow stranger</span>
+            {/* Sign-off */}
+            <div
+              style={{
+                marginTop: "32px",
+                paddingTop: "14px",
+                borderTop: "1px solid rgba(100,60,10,0.25)",
+                textAlign: "right",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                fontStyle: "italic",
+                fontSize: "clamp(0.9rem, 2vw, 1rem)",
+                color: "#2c1a08",
+              }}
+            >
+              With love, <br />
+              <span style={{ fontWeight: "600" }}>
+                {currentLetter.author || "A fellow stranger"}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </LetterModal>
 
       {/* WRITE LETTER CTA */}
