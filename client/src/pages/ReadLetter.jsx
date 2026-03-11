@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
@@ -15,16 +15,86 @@ const ReadLetter = () => {
   const [showContent, setShowContent] = useState(false);
   const [currentLetter, setCurrentLetter] = useState(null);
   const [error, setError] = useState(null);
+  const [recentLetterIds, setRecentLetterIds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  // Load recent letter IDs from localStorage on component mount
+  useEffect(() => {
+    const stored = localStorage.getItem("recentLetterIds");
+    if (stored) {
+      try {
+        const { ids, timestamp } = JSON.parse(stored);
+        // Check if the stored data is less than 5 minutes old
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          setRecentLetterIds(ids);
+        } else {
+          // Clear if older than 5 minutes
+          localStorage.removeItem("recentLetterIds");
+        }
+      } catch (error) {
+        console.error("Error parsing recent letters:", error);
+      }
+    }
+  }, []);
+
+  // Save recent letter IDs to localStorage whenever they change
+  useEffect(() => {
+    if (recentLetterIds.length > 0) {
+      localStorage.setItem(
+        "recentLetterIds",
+        JSON.stringify({
+          ids: recentLetterIds,
+          timestamp: Date.now(),
+        }),
+      );
+    }
+  }, [recentLetterIds]);
+
   const fetchRandomLetter = async () => {
     setError(null);
+    setIsLoading(true);
 
     try {
-      const response = await letterAPI.getRandomLetter();
+      // Try to get a letter that's not in recentLetterIds
+      let response;
+      let attempts = 0;
+      const maxAttempts = 10; // Prevent infinite loop
+
+      while (attempts < maxAttempts) {
+        response = await letterAPI.getRandomLetter();
+
+        if (response.data.success && response.data.data) {
+          const letterId = response.data.data._id;
+
+          // If this letter hasn't been read recently, use it
+          if (!recentLetterIds.includes(letterId)) {
+            setCurrentLetter(response.data.data);
+
+            // Add to recent letters, keep only last 20
+            setRecentLetterIds((prev) => {
+              const updated = [letterId, ...prev].slice(0, 20);
+              return updated;
+            });
+
+            setIsLoading(false);
+            return;
+          }
+        }
+        attempts++;
+      }
+
+      // If we couldn't find a new letter after max attempts, just use any letter
+      response = await letterAPI.getRandomLetter();
       if (response.data.success && response.data.data) {
         setCurrentLetter(response.data.data);
+
+        // Still update recent letters
+        setRecentLetterIds((prev) => {
+          const updated = [response.data.data._id, ...prev].slice(0, 20);
+          return updated;
+        });
       } else {
         setError("No letters found. Be the first to write one!");
         setLetterDropped(false);
@@ -35,11 +105,13 @@ const ReadLetter = () => {
       setError("Failed to fetch a letter. Please try again.");
       setLetterDropped(false);
       setJarOpen(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleJarClick = () => {
-    if (jarOpen) return;
+    if (jarOpen || isLoading) return;
     setJarOpen(true);
     setError(null);
     fetchRandomLetter();
@@ -57,6 +129,12 @@ const ReadLetter = () => {
     setTimeout(() => {
       setJarOpen(false);
     }, 100);
+  };
+
+  // Add manual clear for testing (optional)
+  const clearRecentLetters = () => {
+    localStorage.removeItem("recentLetterIds");
+    setRecentLetterIds([]);
   };
 
   return (
@@ -81,8 +159,9 @@ const ReadLetter = () => {
               onClick={handleJarClick}
               className="mt-4 px-6 py-2 bg-primary/20 rounded-lg text-primary"
               whileHover={{ scale: 1.05 }}
+              disabled={isLoading}
             >
-              Try Again
+              {isLoading ? "Loading..." : "Try Again"}
             </motion.button>
           </motion.div>
         )}
@@ -97,7 +176,7 @@ const ReadLetter = () => {
             <motion.img
               src={jar}
               alt="jar"
-              className="w-40 sm:w-52 md:w-64 cursor-pointer"
+              className={`w-40 sm:w-52 md:w-64 cursor-pointer ${isLoading ? "opacity-50" : ""}`}
               onClick={handleJarClick}
               animate={
                 jarOpen
@@ -117,7 +196,9 @@ const ReadLetter = () => {
               className="mt-6 text-white text-base sm:text-lg text-center px-4 max-w-xs sm:max-w-none"
               style={{ fontFamily: "Georgia, serif" }}
             >
-              Click the jar to drop a random letter
+              {isLoading
+                ? "Finding a letter..."
+                : "Click the jar to drop a random letter"}
             </p>
           </motion.div>
         )}

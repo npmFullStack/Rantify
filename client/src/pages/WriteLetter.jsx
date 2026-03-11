@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
 import { letterAPI } from "@/services/api";
+import { BookOpen } from "lucide-react"; // Add this import
 
 const WriteLetter = () => {
   const [letter, setLetter] = useState("");
@@ -11,6 +13,7 @@ const WriteLetter = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const navigate = useNavigate(); // Add this hook
   const textareaRef = useRef(null);
 
   // Auto-focus textarea when modal opens
@@ -140,26 +143,49 @@ const WriteLetter = () => {
             </p>
           </motion.div>
 
-          {/* CTA Button */}
-          <motion.button
-            onClick={() => setIsModalOpen(true)}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.4 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            className="bg-primary hover:bg-primary/90 text-white font-medium transition-all"
-            style={{
-              padding: "14px 40px",
-              borderRadius: "999px",
-              fontSize: "clamp(0.95rem, 2.5vw, 1.1rem)",
-              fontFamily: "'Palatino Linotype', Georgia, serif",
-              letterSpacing: "0.04em",
-              boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-            }}
-          >
-            Open Letter Paper
-          </motion.button>
+          {/* CTA Buttons - Modified to include both buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <motion.button
+              onClick={() => setIsModalOpen(true)}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="bg-primary hover:bg-primary/90 text-white font-medium transition-all flex-1 sm:flex-none"
+              style={{
+                padding: "14px 40px",
+                borderRadius: "999px",
+                fontSize: "clamp(0.95rem, 2.5vw, 1.1rem)",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                letterSpacing: "0.04em",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+              }}
+            >
+              Open Letter Paper
+            </motion.button>
+
+            {/* New Read Letters Button */}
+            <motion.button
+              onClick={() => navigate("/read-letter")}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="bg-transparent hover:bg-primary/10 text-primary border border-primary/30 font-medium transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none"
+              style={{
+                padding: "14px 40px",
+                borderRadius: "999px",
+                fontSize: "clamp(0.95rem, 2.5vw, 1.1rem)",
+                fontFamily: "'Palatino Linotype', Georgia, serif",
+                letterSpacing: "0.04em",
+              }}
+            >
+              <BookOpen size={20} />
+              Read Letters
+            </motion.button>
+          </div>
 
           {/* Status message */}
           {message && (
@@ -175,7 +201,7 @@ const WriteLetter = () => {
         </motion.div>
       </main>
 
-      {/* Letter Modal */}
+      {/* Letter Modal - Keep existing modal code */}
       <LetterModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         <div className="relative" style={{ minHeight: "420px" }}>
           {/* Header */}
