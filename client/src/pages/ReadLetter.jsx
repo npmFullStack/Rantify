@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import LetterModal from "@/components/LetterModal";
 import { motion } from "framer-motion";
@@ -14,13 +14,11 @@ const ReadLetter = () => {
   const [letterDropped, setLetterDropped] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [currentLetter, setCurrentLetter] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
 
   const fetchRandomLetter = async () => {
-    setIsLoading(true);
     setError(null);
 
     try {
@@ -29,22 +27,36 @@ const ReadLetter = () => {
         setCurrentLetter(response.data.data);
       } else {
         setError("No letters found. Be the first to write one!");
+        setLetterDropped(false);
+        setJarOpen(false);
       }
     } catch (err) {
       console.error("Error fetching letter:", err);
       setError("Failed to fetch a letter. Please try again.");
-    } finally {
-      setIsLoading(false);
+      setLetterDropped(false);
+      setJarOpen(false);
     }
   };
 
   const handleJarClick = () => {
     if (jarOpen) return;
     setJarOpen(true);
+    setError(null);
     fetchRandomLetter();
     setTimeout(() => {
       setLetterDropped(true);
     }, 1600);
+  };
+
+  const handleReadAnother = () => {
+    setShowContent(false);
+    setLetterDropped(false);
+    setJarOpen(false);
+    setCurrentLetter(null);
+    // Small delay before allowing another jar click
+    setTimeout(() => {
+      setJarOpen(false);
+    }, 100);
   };
 
   return (
@@ -52,28 +64,12 @@ const ReadLetter = () => {
       <Header />
 
       <main className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] py-16 px-4 sm:px-6">
-        {/* Loading State */}
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center"
-          >
-            <p
-              className="text-primary text-lg"
-              style={{ fontFamily: "Georgia, serif" }}
-            >
-              Fetching a letter for you...
-            </p>
-          </motion.div>
-        )}
-
         {/* Error State */}
-        {error && !isLoading && (
+        {error && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center"
+            className="text-center mb-8"
           >
             <p
               className="text-red-400 text-lg"
@@ -91,9 +87,13 @@ const ReadLetter = () => {
           </motion.div>
         )}
 
-        {/* JAR */}
-        {!letterDropped && !isLoading && !error && (
-          <>
+        {/* JAR - Hidden when letter is dropped */}
+        {!letterDropped && !error && (
+          <motion.div
+            className="flex flex-col items-center"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <motion.img
               src={jar}
               alt="jar"
@@ -119,33 +119,39 @@ const ReadLetter = () => {
             >
               Click the jar to drop a random letter
             </p>
-          </>
+          </motion.div>
         )}
 
-        {/* LETTER */}
-        {letterDropped && !showContent && !isLoading && currentLetter && (
-          <>
-            <motion.img
-              src={letter}
-              alt="letter"
-              className="w-28 sm:w-36 md:w-40 cursor-pointer mt-10"
-              initial={{ y: -250, opacity: 0 }}
-              animate={{ y: [0, -6, 0], opacity: 1 }}
-              transition={{
-                y: { duration: 2, repeat: Infinity },
-                opacity: { duration: 0.6 },
-              }}
-              whileHover={{ scale: 1.15, rotate: -6, y: -15 }}
-              whileTap={{ scale: 0.95 }}
+        {/* LETTER - Shown after jar is opened */}
+        {letterDropped && !showContent && currentLetter && (
+          <motion.div
+            className="flex flex-col items-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {/* Only the letter */}
+            <motion.div
+              className="flex flex-col items-center cursor-pointer"
               onClick={() => setShowContent(true)}
-            />
-            <p
-              className="mt-6 text-white text-base sm:text-lg text-center"
-              style={{ fontFamily: "Georgia, serif" }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
             >
-              Click the letter to read it
-            </p>
-          </>
+              <motion.img
+                src={letter}
+                alt="letter"
+                className="w-28 sm:w-36 md:w-40"
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <p
+                className="mt-2 text-white text-base sm:text-lg text-center"
+                style={{ fontFamily: "Georgia, serif" }}
+              >
+                Click the letter to read it
+              </p>
+            </motion.div>
+          </motion.div>
         )}
       </main>
 
@@ -200,6 +206,22 @@ const ReadLetter = () => {
               <span style={{ fontWeight: "600" }}>
                 {currentLetter.author || "A fellow stranger"}
               </span>
+            </div>
+
+            {/* Read Another Button inside modal */}
+            <div className="flex justify-center mt-8">
+              <motion.button
+                onClick={() => {
+                  setShowContent(false);
+                  handleReadAnother();
+                }}
+                className="px-6 py-2 bg-primary/20 rounded-lg text-primary border border-primary/30"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{ fontFamily: "Georgia, serif" }}
+              >
+                Read Another Letter
+              </motion.button>
             </div>
           </div>
         )}

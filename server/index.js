@@ -8,10 +8,13 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// Middleware - Update CORS for production
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your Vite frontend URL
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.CLIENT_URL // Your Render client URL
+        : "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -26,13 +29,15 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
+// Root route for testing
+app.get("/", (req, res) => {
+  res.json({ message: "Rantify API is running" });
+});
+
 // MongoDB connection
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB Connected Successfully");
   } catch (error) {
     console.error("❌ MongoDB Connection Error:", error);
